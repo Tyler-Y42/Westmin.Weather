@@ -81,9 +81,14 @@
         .forecast-item.low .value { color: #4ecdc4; }
         
         /* Wind Card */
-        .wind-card { display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 2.0px; padding-top: 5px; padding-bottom: 5px; }
+        .wind-card { display: flex; flex-direction: row; align-items: stretch; padding-top: 5px; padding-bottom: 5px; }
+        .wind-half { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 2.0px; }
+        .wind-half + .wind-half { border-left: 1px solid rgba(255, 255, 255, 0.12); }
         .wind-speed { font-size: clamp(2.16rem, 1.8vw, 2.13rem); font-weight: 200; color: #fff; }
         .wind-speed .unit { font-size: clamp(0.83rem, 0.73vw, 0.86rem); color: #74ebd5; }
+        .wind-rh-value { font-size: clamp(2.16rem, 1.8vw, 2.13rem); font-weight: 200; color: #fff; }
+        .wind-rh-value .unit { font-size: clamp(0.83rem, 0.73vw, 0.86rem); color: #74b9ff; }
+        .wind-rh-label { font-size: clamp(0.74rem, 0.62vw, 0.73rem); color: rgba(255, 255, 255, 0.5); text-transform: uppercase; letter-spacing: 1px; }
         .wind-direction { display: flex; align-items: center; gap: 4.0px; }
         .wind-arrow { width: 1.9em; height: 1.9em; border: 2px solid #74ebd5; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: clamp(0.83rem, 0.73vw, 0.86rem); transition: transform 0.5s ease; }
         .wind-dir-text { font-size: clamp(0.83rem, 0.73vw, 0.86rem); color: #74ebd5; font-weight: 500; }
@@ -159,12 +164,18 @@
             <div class="forecast-item low"><span class="label">Low</span><span class="value"><span id="forecast-low">--</span>°</span></div>
         </div>
         <div class="card wind-card">
-            <div class="wind-speed"><span id="wind-speed">--</span> <span class="unit">mph</span></div>
-            <div class="wind-direction">
-                <div class="wind-arrow" id="wind-arrow">↑</div>
-                <span class="wind-dir-text" id="wind-dir">--</span>
+            <div class="wind-half">
+                <div class="wind-speed"><span id="wind-speed">--</span> <span class="unit">mph</span></div>
+                <div class="wind-direction">
+                    <div class="wind-arrow" id="wind-arrow">↑</div>
+                    <span class="wind-dir-text" id="wind-dir">--</span>
+                </div>
+                <div class="wind-gust">Gusts: <span id="wind-gust">--</span> mph</div>
             </div>
-            <div class="wind-gust">Gusts: <span id="wind-gust">--</span> mph</div>
+            <div class="wind-half">
+                <div class="wind-rh-value"><span id="wind-humidity">--</span><span class="unit">%</span></div>
+                <div class="wind-rh-label">Humidity</div>
+            </div>
         </div>
         
         <!-- Row 2 -->
@@ -277,7 +288,9 @@
                     maintainAspectRatio: false,
                     layout: {
                         padding: {
-                            top: 35
+                            // Must fit a full-size datalabel above a point at the chart top:
+                            // 26px font * 1.2 line height + 8px padding + 6px offset
+                            top: 48
                         }
                     },
                     interaction: { mode: 'index', intersect: false },
@@ -684,7 +697,11 @@
             }
             if (obs.relative_humidity_set_1) {
                 const h = obs.relative_humidity_set_1.filter(x => x !== null);
-                if (h.length) document.getElementById('humidity').textContent = Math.round(h[h.length - 1]);
+                if (h.length) {
+                    const rh = Math.round(h[h.length - 1]);
+                    document.getElementById('humidity').textContent = rh;
+                    document.getElementById('wind-humidity').textContent = rh;
+                }
             }
 
             const pressureField = obs.altimeter_set_1 || obs.pressure_set_1;
