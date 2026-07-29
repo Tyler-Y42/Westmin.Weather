@@ -2,7 +2,7 @@
     "name": "Westmin Weather",
     "short_name": "Westmin Weather",
     "display": "standalone",
-    "start_url": "./Westmin.html",
+    "start_url": "./index.html",
     "background_color": "#1a1a2e",
     "theme_color": "#1a1a2e"
 }
