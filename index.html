@@ -154,6 +154,14 @@
         .extra-item .value { font-size: clamp(1.25rem, 1.12vw, 1.344rem); color: #fff; }
         .extra-item .label { font-size: clamp(0.81rem, 0.70vw, 0.84rem); color: rgba(255, 255, 255, 0.5); text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; }
         
+        /* Debug readout - only shown with ?debug in the URL, see showDebugInfo() */
+        #debug-panel {
+            position: fixed; bottom: 0; left: 0; right: 0; z-index: 999;
+            background: #b30000; color: #fff; font-family: monospace; font-size: 13px;
+            line-height: 1.5; padding: 6px 10px; text-align: left;
+        }
+        #debug-panel b { color: #ffe08a; }
+
         /* Footer */
         .short-forecast { grid-column: 1 / -1; text-align: center; padding: 8px; font-size: clamp(1.19rem, 1.05vw, 1.26rem); color: rgba(255, 255, 255, 0.7); font-style: italic; }
         .update-footer { grid-column: 1 / -1; text-align: center; font-size: clamp(1.19rem, 1.05vw, 1.26rem); color: rgba(255, 255, 255, 0.3); padding: 2px; }
@@ -948,6 +956,38 @@
             });
         }
 
+        // Diagnostic overlay for the iPad white-band issue. Opt in with ?debug in the URL
+        // (or ?debug on the manifest start_url) so the normal dashboard is never affected.
+        // The panel is deliberately red and pinned to the bottom: if a white band appears
+        // BELOW the red panel, the gap is outside the web view and CSS can never paint it.
+        function showDebugInfo() {
+            if (!/[?&]debug/.test(location.search)) return;
+            const el = document.createElement('div');
+            el.id = 'debug-panel';
+            const probe = document.createElement('div');
+            probe.style.cssText = 'position:fixed;top:0;height:env(safe-area-inset-top,0px);';
+            document.body.appendChild(probe);
+            const insetTop = probe.getBoundingClientRect().height;
+            probe.style.cssText = 'position:fixed;top:0;height:env(safe-area-inset-bottom,0px);';
+            const insetBottom = probe.getBoundingClientRect().height;
+            probe.remove();
+            const vv = window.visualViewport;
+            const render = () => {
+                el.innerHTML =
+                    `<b>inner</b> ${window.innerWidth}x${window.innerHeight} &nbsp; ` +
+                    `<b>screen</b> ${screen.width}x${screen.height} &nbsp; ` +
+                    `<b>avail</b> ${screen.availWidth}x${screen.availHeight}<br>` +
+                    `<b>vv</b> ${vv ? Math.round(vv.width) + 'x' + Math.round(vv.height) + ' scale ' + vv.scale.toFixed(3) : 'n/a'} &nbsp; ` +
+                    `<b>dpr</b> ${window.devicePixelRatio}<br>` +
+                    `<b>safe-area</b> top ${insetTop} bottom ${insetBottom} &nbsp; ` +
+                    `<b>standalone</b> ${navigator.standalone === undefined ? 'n/a' : navigator.standalone} &nbsp; ` +
+                    `<b>doc</b> ${document.documentElement.clientWidth}x${document.documentElement.clientHeight}`;
+            };
+            render();
+            document.body.appendChild(el);
+            window.addEventListener('resize', render);
+        }
+
         function enableFullscreen() {
             document.addEventListener('dblclick', () => {
                 if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});
@@ -961,6 +1001,7 @@
             initWeekChart();
             enableFullscreen();
             enableTooltipDismiss();
+            showDebugInfo();
             await fetchMesoWestData();
             await fetchNWSForecast();
             await fetchAQI();
