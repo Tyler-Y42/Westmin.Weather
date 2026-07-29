@@ -960,8 +960,26 @@
         // (or ?debug on the manifest start_url) so the normal dashboard is never affected.
         // The panel is deliberately red and pinned to the bottom: if a white band appears
         // BELOW the red panel, the gap is outside the web view and CSS can never paint it.
+        // Triggered by ?debug in the URL, or by triple-tapping the "Last updated" footer
+        // (the home-screen app launches from the manifest start_url, which drops the query).
         function showDebugInfo() {
-            if (!/[?&]debug/.test(location.search)) return;
+            const footer = document.getElementById('update-time');
+            let taps = [];
+            footer.addEventListener('click', () => {
+                const now = Date.now();
+                taps = taps.filter(t => now - t < 1200);
+                taps.push(now);
+                if (taps.length >= 3) {
+                    taps = [];
+                    const existing = document.getElementById('debug-panel');
+                    if (existing) existing.remove();
+                    else buildDebugPanel();
+                }
+            });
+            if (/[?&]debug/.test(location.search)) buildDebugPanel();
+        }
+
+        function buildDebugPanel() {
             const el = document.createElement('div');
             el.id = 'debug-panel';
             const probe = document.createElement('div');
