@@ -115,15 +115,18 @@
         .precip-label { font-size: clamp(1.06rem, 0.93vw, 1.105rem); color: rgba(255, 255, 255, 0.5); text-transform: uppercase; letter-spacing: 2px; }
         
         /* Pressure Card */
-        .pressure-card { display: flex; flex-direction: column; padding-top: 5px; padding-bottom: 5px; }
-        .pressure-header { display: flex; justify-content: space-between; align-items: center; margin-bottom: 2.55px; }
-        .pressure-value { font-size: clamp(1.25rem, 1.07vw, 1.275rem); font-weight: 200; color: #74ebd5; }
-        .pressure-value .unit { font-size: clamp(0.75rem, 0.61vw, 0.7225rem); color: rgba(255, 255, 255, 0.5); }
-        .pressure-label { font-size: clamp(0.75rem, 0.61vw, 0.7225rem); color: rgba(255, 255, 255, 0.5); text-transform: uppercase; letter-spacing: 1px; }
-        .pressure-trend { font-size: clamp(0.875rem, 0.71vw, 0.85rem); }
-        .trend-up { color: #27ae60; }
-        .trend-down { color: #e74c3c; }
+        .pressure-card { display: flex; flex-direction: row; align-items: stretch; gap: 0.5rem; padding-top: 2px; padding-bottom: 5px; }
+        /* current value gets its own full-height slot, readable from across the room */
+        .pressure-now-slot { flex: 0 0 auto; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 2px; padding: 0 0.3rem; }
+        .pressure-value-big { font-size: 2.7rem; font-weight: 200; color: #74ebd5; line-height: 1; }
+        .pressure-unit { font-size: 0.8rem; color: rgba(255, 255, 255, 0.5); letter-spacing: 1px; }
+        .pressure-trend { font-size: 0.95rem; font-weight: 500; }
+        .trend-up { color: #27ae60; font-weight: 700; }
+        .trend-down { color: #e74c3c; font-weight: 700; }
+        .trend-gentle { color: #f1c40f; }
         .trend-stable { color: rgba(255, 255, 255, 0.5); }
+        .pressure-main { flex: 1; min-width: 0; display: flex; flex-direction: column; }
+        .pressure-label { font-size: 0.8rem; color: rgba(255, 255, 255, 0.5); text-transform: uppercase; letter-spacing: 1px; line-height: 1.1; }
         .pressure-chart-container { flex: 1; position: relative; min-height: 0; }
         
         /* Forecast Graph */
@@ -202,13 +205,15 @@
             <div class="precip-label">Chance of Precip (12hr)</div>
         </div>
         <div class="card pressure-card">
-            <div class="pressure-header">
-                <div>
-                    <div class="pressure-value"><span id="pressure-now">--</span> <span class="unit">inHg</span> <span class="pressure-trend" id="pressure-trend">--</span></div>
-                    <div class="pressure-label">Pressure (24hr)</div>
-                </div>
+            <div class="pressure-now-slot">
+                <div class="pressure-value-big"><span id="pressure-now">--</span></div>
+                <div class="pressure-unit">inHg</div>
+                <div class="pressure-trend trend-stable" id="pressure-trend">--</div>
             </div>
-            <div class="pressure-chart-container"><canvas id="pressure-chart"></canvas></div>
+            <div class="pressure-main">
+                <div class="pressure-label">Pressure (24hr)</div>
+                <div class="pressure-chart-container"><canvas id="pressure-chart"></canvas></div>
+            </div>
         </div>
         
         <!-- Row 3: 12hr Forecast Graph -->
@@ -430,16 +435,21 @@
                 type: 'line',
                 data: {
                     labels: [],
-                    datasets: [{
-                        data: [],
-                        borderColor: '#74ebd5',
-                        backgroundColor: 'rgba(116, 235, 213, 0.15)',
-                        borderWidth: 1.5,
-                        fill: true,
-                        tension: 0.4,
-                        pointRadius: 0,
-                        pointHoverRadius: 4
-                    }]
+                    datasets: [
+                        {
+                            data: [],
+                            borderColor: '#74ebd5',
+                            backgroundColor: 'rgba(116, 235, 213, 0.15)',
+                            borderWidth: 1.5,
+                            fill: true,
+                            tension: 0.4,
+                            pointRadius: 0,
+                            pointHoverRadius: 4
+                        },
+                        // "normal wobble" band: +-0.03 inHg (diurnal tide) around the 24hr mean
+                        { data: [], borderWidth: 0, pointRadius: 0, pointHoverRadius: 0, fill: '+1', backgroundColor: 'rgba(255, 255, 255, 0.07)' },
+                        { data: [], borderWidth: 0, pointRadius: 0, pointHoverRadius: 0, fill: false }
+                    ]
                 },
                 options: {
                     responsive: true,
@@ -454,6 +464,7 @@
                             bodyColor: '#74ebd5',
                             bodyFont: { size: 14 },
                             displayColors: false,
+                            filter: item => item.datasetIndex === 0,
                             callbacks: {
                                 label: function(ctx) {
                                     return `${ctx.parsed.y.toFixed(2)} inHg`;
@@ -484,8 +495,7 @@
                                     return { size: Math.max(8, Math.min(18, width / 21)) };
                                 },
                                 callback: v => v.toFixed(2), count: 5
-                            },
-                            grace: '5%'
+                            }
                         }
                     }
                 }
@@ -725,12 +735,28 @@
                 if (p.length) {
                     document.getElementById('pressure-now').textContent = p[p.length - 1].toFixed(2);
                     
-                    // Update trend
-                    if (p.length > 12) {
-                        const diff = p[p.length - 1] - p[p.length - 13];
+                    // 3-hour tendency (WMO convention): compare against the obs closest to 3 hrs ago.
+                    // <0.02 steady | 0.02-0.06 gentle | >0.06 rapid (the storm's-coming signal)
+                    const lastT = new Date(times[times.length - 1]).getTime();
+                    const target = lastT - 3 * 3600 * 1000;
+                    let i3 = 0;
+                    for (let i = 0; i < times.length; i++) {
+                        if (Math.abs(new Date(times[i]).getTime() - target) < Math.abs(new Date(times[i3]).getTime() - target)) i3 = i;
+                    }
+                    if (Math.abs(new Date(times[i3]).getTime() - target) < 90 * 60 * 1000) {
+                        const diff3 = p[p.length - 1] - p[i3];
                         const el = document.getElementById('pressure-trend');
-                        el.textContent = diff > 0.02 ? '↑' : diff < -0.02 ? '↓' : '→';
-                        el.className = 'pressure-trend ' + (diff > 0.02 ? 'trend-up' : diff < -0.02 ? 'trend-down' : 'trend-stable');
+                        const mag = Math.abs(diff3);
+                        if (mag < 0.02) {
+                            el.textContent = '→ steady';
+                            el.className = 'pressure-trend trend-stable';
+                        } else if (mag <= 0.06) {
+                            el.textContent = `${diff3 > 0 ? '↑' : '↓'} ${mag.toFixed(2)}/3hr`;
+                            el.className = 'pressure-trend trend-gentle';
+                        } else {
+                            el.textContent = `${diff3 > 0 ? '↑↑' : '↓↓'} ${mag.toFixed(2)}/3hr`;
+                            el.className = 'pressure-trend ' + (diff3 > 0 ? 'trend-up' : 'trend-down');
+                        }
                     }
                     
                     // Update pressure chart - sample every ~2 hours for cleaner display
@@ -748,6 +774,19 @@
                     }
                     
                     if (pressureChart) {
+                        // Fixed minimum y-span (0.30 inHg) so slope reads the same day to day:
+                        // calm days look flat, frontal drops look steep
+                        const dmin = Math.min(...p), dmax = Math.max(...p);
+                        const span = Math.max(0.30, (dmax - dmin) * 1.1);
+                        const center = (dmin + dmax) / 2;
+                        pressureChart.options.scales.y.min = center - span / 2;
+                        pressureChart.options.scales.y.max = center + span / 2;
+
+                        // Normal-wobble band: +-0.03 inHg (semidiurnal tide) around the 24hr mean
+                        const mean = p.reduce((a, b) => a + b, 0) / p.length;
+                        pressureChart.data.datasets[1].data = chartTimes.map(() => mean + 0.03);
+                        pressureChart.data.datasets[2].data = chartTimes.map(() => mean - 0.03);
+
                         pressureChart.data.labels = chartTimes;
                         pressureChart.data.datasets[0].data = chartValues;
                         pressureChart.update('none');
