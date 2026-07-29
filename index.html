@@ -5,7 +5,10 @@
     <link rel="icon" href="data:image/svg+xml,&lt;svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22&gt;&lt;text y=%22.9em%22 font-size=%2290%22&gt;☀️&lt;/text&gt;&lt;/svg&gt;">
     <meta name="viewport" content="width=1200, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
+    <!-- opaque black status bar: clock sits on its own black strip and never covers the page -->
+    <meta name="apple-mobile-web-app-status-bar-style" content="black">
+    <meta name="theme-color" content="#1a1a2e">
+    <link rel="manifest" href="manifest.webmanifest">
     <title>Westmin Weather</title>
     <style>
         * { margin: 0; padding: 0; box-sizing: border-box; }
@@ -62,15 +65,17 @@
         }
         
         /* Current Temp Card */
-        .temp-main { display: flex; flex-direction: column; align-items: center; justify-content: center; padding-top: 5px; padding-bottom: 0px; position: relative; container-type: size; }
+        .temp-main { display: flex; flex-direction: column; align-items: center; justify-content: center; padding-top: 0; padding-bottom: 0; position: relative; container-type: size; }
+        /* invisible twin of the bottom label so the ring zone is vertically symmetric in the card */
+        .temp-label-spacer { visibility: hidden; }
         .temp-ring-container { position: relative; display: flex; align-items: center; justify-content: center; flex: 1 1 auto; min-height: 0; width: 100%; }
         /* ring just fills whatever space the card has; overflow visible lets the halo glow bleed */
         .temp-ring-svg { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 100%; height: 100%; overflow: visible; }
         /* sized against BOTH card dimensions so the number always fits inside the pill, first line is the fallback */
-        .temp-current { font-size: 3.4rem; font-size: clamp(1.5rem, min(19cqw, 54cqh), 7.5rem); font-weight: 200; color: #fff; line-height: 1; position: relative; z-index: 1; }
+        .temp-current { font-size: 3.4rem; font-size: clamp(1.5rem, min(17.3cqw, 50cqh), 7.5rem); font-weight: 200; color: #fff; line-height: 1; position: relative; z-index: 1; }
         .temp-current a { color: #fff; text-decoration: none; }
         .temp-current a:hover { color: #74ebd5; }
-        .temp-current .unit { font-size: 1.25rem; font-size: clamp(0.7rem, min(6cqw, 18cqh), 2.2rem); vertical-align: super; color: #74ebd5; }
+        .temp-current .unit { font-size: 1.25rem; font-size: clamp(0.7rem, min(6cqw, 16.5cqh), 2.2rem); vertical-align: super; color: #74ebd5; }
         .temp-label { font-size: 0.94rem; font-size: clamp(0.6rem, 11cqh, 1.1rem); color: rgba(255, 255, 255, 0.5); text-transform: uppercase; letter-spacing: 2px; margin-top: 4px; }
         
         /* Today's Forecast Card */
@@ -155,6 +160,7 @@
     <div class="container">
         <!-- Row 1 -->
         <div class="card temp-main">
+            <div class="temp-label temp-label-spacer">Current</div>
             <div class="temp-ring-container">
                 <svg class="temp-ring-svg" width="300" height="100" viewBox="0 0 300 100">
                     <defs>
@@ -916,6 +922,29 @@
             st.textContent = override || status; st.classList.add(cls);
         }
 
+        // Touch screens leave chart tooltips stuck open; clear them on outside taps
+        // and auto-hide a few seconds after any tap on a chart
+        let tooltipTimer = null;
+        function clearChartTooltips() {
+            [forecastChart, pressureChart, weekChart].forEach(c => {
+                if (c && c.getActiveElements().length) {
+                    c.setActiveElements([]);
+                    c.tooltip.setActiveElements([], { x: 0, y: 0 });
+                    c.update('none');
+                }
+            });
+        }
+        function enableTooltipDismiss() {
+            document.addEventListener('pointerdown', (e) => {
+                clearTimeout(tooltipTimer);
+                if (e.target.tagName === 'CANVAS') {
+                    tooltipTimer = setTimeout(clearChartTooltips, 6000);
+                } else {
+                    clearChartTooltips();
+                }
+            });
+        }
+
         function enableFullscreen() {
             document.addEventListener('dblclick', () => {
                 if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});
@@ -928,6 +957,7 @@
             initPressureChart();
             initWeekChart();
             enableFullscreen();
+            enableTooltipDismiss();
             await fetchMesoWestData();
             await fetchNWSForecast();
             await fetchAQI();
