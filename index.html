@@ -14,11 +14,14 @@
             overflow: hidden;
         }
         /* fluid font scaling - everything is in rem so it all scales together, works out to 16px at the 1200x800 design size */
-        html { font-size: clamp(9px, min(1.333vw, 2vh), 28px); }
-        body {
-            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
+        /* background lives on html so the page canvas (incl. iOS standalone safe areas) never shows white */
+        html {
+            font-size: clamp(9px, min(1.333vw, 2vh), 28px);
             background-color: #1a1a2e;
             background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
+        }
+        body {
+            font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
             color: #e8e8e8;
             padding: 0.75rem;
         }
@@ -61,21 +64,21 @@
         /* Current Temp Card */
         .temp-main { display: flex; flex-direction: column; align-items: center; justify-content: center; padding-top: 5px; padding-bottom: 0px; position: relative; container-type: size; }
         .temp-ring-container { position: relative; display: flex; align-items: center; justify-content: center; flex: 1 1 auto; min-height: 0; width: 100%; }
-        /* ring just fills whatever space the card has */
-        .temp-ring-svg { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 100%; height: 100%; }
-        /* size off card height so the number stays inside the ring, first line is the fallback */
-        .temp-current { font-size: 3.4rem; font-size: clamp(1.5rem, 42cqh, 4.5rem); font-weight: 200; color: #fff; line-height: 1; position: relative; z-index: 1; }
+        /* ring just fills whatever space the card has; overflow visible lets the halo glow bleed */
+        .temp-ring-svg { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 100%; height: 100%; overflow: visible; }
+        /* sized against BOTH card dimensions so the number always fits inside the pill, first line is the fallback */
+        .temp-current { font-size: 3.4rem; font-size: clamp(1.5rem, min(19cqw, 54cqh), 7.5rem); font-weight: 200; color: #fff; line-height: 1; position: relative; z-index: 1; }
         .temp-current a { color: #fff; text-decoration: none; }
         .temp-current a:hover { color: #74ebd5; }
-        .temp-current .unit { font-size: 1.25rem; font-size: clamp(0.7rem, 14cqh, 1.6rem); vertical-align: super; color: #74ebd5; }
+        .temp-current .unit { font-size: 1.25rem; font-size: clamp(0.7rem, min(6cqw, 18cqh), 2.2rem); vertical-align: super; color: #74ebd5; }
         .temp-label { font-size: 0.94rem; font-size: clamp(0.6rem, 11cqh, 1.1rem); color: rgba(255, 255, 255, 0.5); text-transform: uppercase; letter-spacing: 2px; margin-top: 4px; }
         
         /* Today's Forecast Card */
         .forecast-card { display: flex; flex-direction: column; justify-content: center; gap: 4.5px; padding: 9.1px 9.1px 9.1px 9.1px; padding-top: 13.3px; padding-bottom: 13.3px; }
-        .forecast-card .card-title { font-size: clamp(0.76rem, 0.62vw, 0.75rem); color: rgba(255, 255, 255, 0.5); text-transform: uppercase; letter-spacing: 1px; text-align: center; margin-bottom: 2px; }
+        .forecast-card .card-title { font-size: 0.95rem; color: rgba(255, 255, 255, 0.5); text-transform: uppercase; letter-spacing: 1px; text-align: center; margin-bottom: 2px; }
         .forecast-item { display: flex; align-items: center; justify-content: space-between; }
-        .forecast-item .label { font-size: clamp(0.93rem, 0.82vw, 0.96rem); color: rgba(255, 255, 255, 0.6); text-transform: uppercase; letter-spacing: 1px; }
-        .forecast-item .value { font-size: clamp(1.76rem, 1.49vw, 1.79rem); font-weight: 300; }
+        .forecast-item .label { font-size: 1.15rem; color: rgba(255, 255, 255, 0.6); text-transform: uppercase; letter-spacing: 1px; }
+        .forecast-item .value { font-size: 2.2rem; font-weight: 300; }
         .forecast-item.high .value { color: #ff6b6b; }
         .forecast-item.low .value { color: #4ecdc4; }
         
@@ -83,15 +86,15 @@
         .wind-card { display: flex; flex-direction: row; align-items: stretch; padding-top: 5px; padding-bottom: 5px; }
         .wind-half { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 2.0px; }
         .wind-half + .wind-half { border-left: 1px solid rgba(255, 255, 255, 0.12); }
-        .wind-speed { font-size: clamp(2.16rem, 1.8vw, 2.13rem); font-weight: 200; color: #fff; }
-        .wind-speed .unit { font-size: clamp(0.83rem, 0.73vw, 0.86rem); color: #74ebd5; }
-        .wind-rh-value { font-size: clamp(2.16rem, 1.8vw, 2.13rem); font-weight: 200; color: #fff; }
-        .wind-rh-value .unit { font-size: clamp(0.83rem, 0.73vw, 0.86rem); color: #74b9ff; }
-        .wind-rh-label { font-size: clamp(0.74rem, 0.62vw, 0.73rem); color: rgba(255, 255, 255, 0.5); text-transform: uppercase; letter-spacing: 1px; }
+        .wind-speed { font-size: 2.6rem; font-weight: 200; color: #fff; }
+        .wind-speed .unit { font-size: 1.05rem; color: #74ebd5; }
+        .wind-rh-value { font-size: 2.6rem; font-weight: 200; color: #fff; }
+        .wind-rh-value .unit { font-size: 1.05rem; color: #74b9ff; }
+        .wind-rh-label { font-size: 0.95rem; color: rgba(255, 255, 255, 0.5); text-transform: uppercase; letter-spacing: 1px; }
         .wind-direction { display: flex; align-items: center; gap: 4.0px; }
-        .wind-arrow { width: 1.9em; height: 1.9em; border: 2px solid #74ebd5; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: clamp(0.83rem, 0.73vw, 0.86rem); transition: transform 0.5s ease; }
-        .wind-dir-text { font-size: clamp(0.83rem, 0.73vw, 0.86rem); color: #74ebd5; font-weight: 500; }
-        .wind-gust { font-size: clamp(0.74rem, 0.62vw, 0.73rem); color: rgba(255, 255, 255, 0.5); }
+        .wind-arrow { width: 1.9em; height: 1.9em; border: 2px solid #74ebd5; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.05rem; transition: transform 0.5s ease; }
+        .wind-dir-text { font-size: 1.05rem; color: #74ebd5; font-weight: 500; }
+        .wind-gust { font-size: 0.95rem; color: rgba(255, 255, 255, 0.5); }
         .wind-gust span { color: #ff9f43; }
         
         /* AQI Card */
@@ -150,8 +153,19 @@
         <!-- Row 1 -->
         <div class="card temp-main">
             <div class="temp-ring-container">
-                <svg class="temp-ring-svg" width="200" height="160" viewBox="0 0 200 160">
-                    <circle id="temp-ring" cx="100" cy="90" r="65" fill="none" stroke="#ffffff" stroke-width="9" opacity="0.8"/>
+                <svg class="temp-ring-svg" width="300" height="100" viewBox="0 0 300 100">
+                    <defs>
+                        <filter id="ring-halo" x="-30%" y="-30%" width="160%" height="160%">
+                            <feGaussianBlur stdDeviation="4"/>
+                        </filter>
+                    </defs>
+                    <!-- stroke set on the group so the JS temp-color update hits pill and halo together -->
+                    <g id="temp-ring" stroke="#ffffff">
+                        <!-- halo (disabled, restore by uncommenting):
+                        <rect x="12" y="6" width="276" height="88" rx="44" fill="none" stroke-width="13" opacity="0.35" filter="url(#ring-halo)"/>
+                        -->
+                        <rect x="12" y="6" width="276" height="88" rx="44" fill="none" stroke-width="6" opacity="0.9"/>
+                    </g>
                 </svg>
                 <div class="temp-current"><a id="temp-link" href="#" target="_blank"><span id="temp-now">--</span><span class="unit">°F</span></a></div>
             </div>
