@@ -21,8 +21,11 @@
         /* background lives on html so the page canvas (incl. iOS standalone safe areas) never shows white */
         html {
             font-size: clamp(9px, min(1.333vw, 2vh), 28px);
+            /* background-image (NOT the `background` shorthand) so background-color survives:
+               iOS fills safe-area/overscroll strips with the root background-COLOR only,
+               and a shorthand would reset it to transparent -> white band on iPad */
+            background-image: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
             background-color: #1a1a2e;
-            background: linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
         }
         body {
             font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, Oxygen, Ubuntu, sans-serif;
