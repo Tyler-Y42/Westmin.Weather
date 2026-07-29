@@ -5,8 +5,7 @@
     <link rel="icon" href="data:image/svg+xml,&lt;svg xmlns=%22http://www.w3.org/2000/svg%22 viewBox=%220 0 100 100%22&gt;&lt;text y=%22.9em%22 font-size=%2290%22&gt;☀️&lt;/text&gt;&lt;/svg&gt;">
     <meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
     <meta name="apple-mobile-web-app-capable" content="yes">
-    <!-- translucent status bar: the page's own background shows through so it blends exactly;
-         body padding-top clears the clock via safe-area inset -->
+    <!-- translucent status bar blends with the page; body padding-top keeps content clear of the clock -->
     <meta name="apple-mobile-web-app-status-bar-style" content="black-translucent">
     <meta name="theme-color" content="#1a1a2e">
     <link rel="manifest" href="manifest.webmanifest">
@@ -17,15 +16,12 @@
             height: 100%;
             overflow: hidden;
         }
-        /* fluid font scaling - everything is in rem so it all scales together, works out to 16px at the 1200x800 design size */
-        /* background lives on html so the page canvas (incl. iOS standalone safe areas) never shows white */
+        /* fluid root font: 16px at the 1200x800 design size, everything in rem scales with it */
         html {
             font-size: clamp(9px, min(1.333vw, 2vh), 28px);
-            /* background-image (NOT the `background` shorthand) so background-color survives:
-               iOS fills safe-area/overscroll strips with the root background-COLOR only,
-               and a shorthand would reset it to transparent -> white band on iPad.
-               The first layer eases the page's bottom edge to one uniform color so the
-               strip (same color) continues the gradient seamlessly across the full width. */
+            /* background-image, NOT the `background` shorthand: iOS paints safe-area strips with the
+               root background-color only, and the shorthand would reset it to transparent (white band).
+               The first layer fades the bottom edge to one flat color so the strip continues it seamlessly. */
             background-image:
                 linear-gradient(to bottom, rgba(19, 40, 76, 0) 80%, rgba(19, 40, 76, 1) 100%),
                 linear-gradient(135deg, #1a1a2e 0%, #16213e 50%, #0f3460 100%);
@@ -43,7 +39,7 @@
             height: 100%;
             display: grid;
             grid-template-columns: repeat(6, 1fr);
-            grid-template-rows: 1.1fr 1.1fr 2.48fr 0.54fr 0.36fr auto;
+            grid-template-rows: 1.1fr 1.1fr 2.48fr 0.54fr auto;
             gap: 0.625rem;
         }
         
@@ -79,7 +75,7 @@
         /* invisible twin of the bottom label so the ring zone is vertically symmetric in the card */
         .temp-label-spacer { visibility: hidden; }
         .temp-ring-container { position: relative; display: flex; align-items: center; justify-content: center; flex: 1 1 auto; min-height: 0; width: 100%; }
-        /* ring just fills whatever space the card has; overflow visible lets the halo glow bleed */
+        /* ring scales to whatever space the card gives it */
         .temp-ring-svg { position: absolute; top: 50%; left: 50%; transform: translate(-50%, -50%); width: 100%; height: 100%; overflow: visible; }
         /* sized against BOTH card dimensions so the number always fits inside the pill, first line is the fallback */
         .temp-current { font-size: 3.4rem; font-size: clamp(1.5rem, min(17.3cqw, 50cqh), 7.5rem); font-weight: 200; color: #fff; line-height: 1; position: relative; z-index: 1; }
@@ -89,7 +85,7 @@
         .temp-label { font-size: 0.94rem; font-size: clamp(0.6rem, 11cqh, 1.1rem); color: rgba(255, 255, 255, 0.5); text-transform: uppercase; letter-spacing: 2px; margin-top: 4px; }
         
         /* Today's Forecast Card */
-        .forecast-card { display: flex; flex-direction: column; justify-content: center; gap: 4.5px; padding: 9.1px 9.1px 9.1px 9.1px; padding-top: 13.3px; padding-bottom: 13.3px; }
+        .forecast-card { display: flex; flex-direction: column; justify-content: center; gap: 4.5px; padding: 13.3px 9.1px; }
         .forecast-card .card-title { font-size: 0.95rem; color: rgba(255, 255, 255, 0.5); text-transform: uppercase; letter-spacing: 1px; text-align: center; margin-bottom: 2px; }
         .forecast-item { display: flex; align-items: center; justify-content: space-between; }
         .forecast-item .label { font-size: 1.15rem; color: rgba(255, 255, 255, 0.6); text-transform: uppercase; letter-spacing: 1px; }
@@ -99,14 +95,14 @@
         
         /* Wind Card */
         .wind-card { display: flex; flex-direction: row; align-items: stretch; padding-top: 5px; padding-bottom: 5px; }
-        .wind-half { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 2.0px; }
+        .wind-half { flex: 1; min-width: 0; display: flex; flex-direction: column; justify-content: center; align-items: center; gap: 2px; }
         .wind-half + .wind-half { border-left: 1px solid rgba(255, 255, 255, 0.12); }
         .wind-speed { font-size: 2.6rem; font-weight: 200; color: #fff; }
         .wind-speed .unit { font-size: 1.05rem; color: #74ebd5; }
         .wind-rh-value { font-size: 2.6rem; font-weight: 200; color: #fff; }
         .wind-rh-value .unit { font-size: 1.05rem; color: #74b9ff; }
         .wind-rh-label { font-size: 0.95rem; color: rgba(255, 255, 255, 0.5); text-transform: uppercase; letter-spacing: 1px; }
-        .wind-direction { display: flex; align-items: center; gap: 4.0px; }
+        .wind-direction { display: flex; align-items: center; gap: 4px; }
         .wind-arrow { width: 1.9em; height: 1.9em; border: 2px solid #74ebd5; border-radius: 50%; display: flex; align-items: center; justify-content: center; font-size: 1.05rem; transition: transform 0.5s ease; }
         .wind-dir-text { font-size: 1.05rem; color: #74ebd5; font-weight: 500; }
         .wind-gust { font-size: 0.95rem; color: rgba(255, 255, 255, 0.5); }
@@ -155,15 +151,83 @@
         .week-forecast-card { display: flex; flex-direction: column; padding: 0.875rem; }
         .week-chart-container { flex: 1; position: relative; min-height: 0; }
         
-        /* Extra Data Row */
-        .extra-data { grid-column: 1 / -1; display: flex; justify-content: space-around; align-items: center; padding: 4px; }
-        .extra-item { text-align: center; }
+        /* Extra Data Row: four equal columns, each item centred in its own, so the readouts
+           are evenly spaced across the card */
+        .extra-data { grid-column: 1 / -1; display: grid; grid-template-columns: repeat(4, 1fr); gap: 0.4rem; align-items: center; padding: 4px 0; }
+        .extra-data > .extra-item { grid-row: 1; min-width: 0; }  /* one visible row, allow shrink */
+        .extra-item { text-align: center; display: flex; flex-direction: column; align-items: center; justify-content: center; }
         .extra-item .value { font-size: clamp(1.25rem, 1.12vw, 1.344rem); color: #fff; }
         .extra-item .label { font-size: clamp(0.81rem, 0.70vw, 0.84rem); color: rgba(255, 255, 255, 0.5); text-transform: uppercase; letter-spacing: 1px; margin-top: 2px; }
+
+        /* Sunrise/sunset: arc traces the sun's daily path, dot marks where it is now */
+        .sun-item { flex-direction: row; gap: 0.7rem; }
+        .sun-arc { width: 7.4rem; height: 3.3rem; overflow: visible; flex: 0 0 auto; }
+        .sun-times { display: flex; flex-direction: column; gap: 2px; text-align: left; line-height: 1.2; }
+        .sun-times div { font-size: 1.16rem; color: #fff; white-space: nowrap; }
+        .sun-times .sun-up { color: #ffd166; }
+        .sun-times .sun-down { color: #9aa7ff; }
+        .moon-icon { width: 2.1rem; height: 2.1rem; flex: 0 0 auto; }
+
+        /* 24hr high/low: labels left, values right, compact */
+        .hilo { width: fit-content; justify-self: center; }
+        .hilo-row { display: flex; align-items: baseline; justify-content: space-between; width: 100%; gap: 0.6rem; }
+        .hilo-row .label { font-size: 0.88rem; margin-top: 0; }
+        .hilo-row .val { font-size: 1.4rem; font-weight: 300; }
+        .hilo-row.high .val { color: #ff6b6b; }
+        .hilo-row.low .val { color: #4ecdc4; }
         
-        /* Footer */
-        .short-forecast { grid-column: 1 / -1; text-align: center; padding: 8px; font-size: clamp(1.19rem, 1.05vw, 1.26rem); color: rgba(255, 255, 255, 0.7); font-style: italic; }
-        .update-footer { grid-column: 1 / -1; text-align: center; font-size: clamp(1.19rem, 1.05vw, 1.26rem); color: rgba(255, 255, 255, 0.3); padding: 2px; }
+        /* Footer bar: radar button, forecast phrase / alert banner, timestamp */
+        .bottom-bar { grid-column: 1 / -1; display: flex; align-items: center; justify-content: center; position: relative; padding: 8px 12px; transition: background-color 0.3s ease; }
+        .short-forecast { text-align: center; font-size: clamp(1.19rem, 1.05vw, 1.26rem); color: rgba(255, 255, 255, 0.7); font-style: italic; padding: 0 9rem; }
+        .update-footer { position: absolute; right: 0.9rem; font-size: 0.85rem; color: rgba(255, 255, 255, 0.3); white-space: nowrap; }
+
+        /* Radar button + fullscreen radar overlay */
+        .radar-btn { position: absolute; left: 0.9rem; background: rgba(116, 235, 213, 0.12); color: #74ebd5; border: 1px solid rgba(116, 235, 213, 0.45);
+            border-radius: 0.5rem; padding: 0.25rem 0.7rem; font-size: 0.85rem; font-weight: 600; letter-spacing: 1px; font-family: inherit; cursor: pointer; }
+        .radar-btn:active { background: rgba(116, 235, 213, 0.28); }
+        .radar-modal { position: fixed; inset: 0; z-index: 500; background: #0b1020; display: none; flex-direction: column; }
+        .radar-modal.open { display: flex; }
+        .radar-head { display: flex; align-items: center; gap: 0.8rem; padding: 0.5rem 0.9rem; background: rgba(255, 255, 255, 0.06); position: relative; }
+        .radar-title { font-size: 1.1rem; color: #fff; letter-spacing: 1px; text-transform: uppercase; }
+        /* frame time: centred and large so it reads at a glance while the loop plays */
+        .radar-time { position: absolute; left: 50%; transform: translateX(-50%); font-size: 2.1rem; font-weight: 600;
+            color: #74ebd5; font-variant-numeric: tabular-nums; line-height: 1.1; white-space: nowrap; }
+        /* tile attributions sit in Leaflet's own corner control, not the header */
+        .leaflet-control-attribution { background: rgba(11, 16, 32, 0.7) !important; color: rgba(255, 255, 255, 0.4) !important; font-size: 0.62rem !important; }
+        .leaflet-control-attribution a { color: rgba(255, 255, 255, 0.5) !important; }
+
+        /* dBZ legend for the NEXRAD colour ramp */
+        .radar-legend { position: absolute; left: 0.9rem; bottom: 0.9rem; z-index: 1000; background: rgba(11, 16, 32, 0.85);
+            border: 1px solid rgba(255, 255, 255, 0.15); border-radius: 0.5rem; padding: 0.4rem 0.6rem; }
+        .radar-legend-title { font-size: 0.7rem; color: rgba(255, 255, 255, 0.6); text-transform: uppercase; letter-spacing: 1px; margin-bottom: 3px; }
+        .radar-legend-bar { display: flex; width: 15rem; height: 0.6rem; border-radius: 3px; overflow: hidden; }
+        .radar-legend-bar i { flex: 1; }
+        .radar-legend-labels { display: flex; justify-content: space-between; font-size: 0.68rem; color: rgba(255, 255, 255, 0.7); margin-top: 2px; font-variant-numeric: tabular-nums; }
+        .radar-legend-words { display: flex; justify-content: space-between; font-size: 0.66rem; color: rgba(255, 255, 255, 0.45); }
+        .radar-close { background: rgba(255, 255, 255, 0.1); color: #fff; border: 1px solid rgba(255, 255, 255, 0.25);
+            border-radius: 0.5rem; padding: 0.3rem 0.8rem; font-size: 0.95rem; font-family: inherit; cursor: pointer; }
+        #radar-close { margin-left: auto; }
+        #radar-slider { width: 12rem; accent-color: #74ebd5; cursor: pointer; }
+        #radar-play { min-width: 2.6rem; }
+        .radar-map { flex: 1; min-height: 0; background: #0b1020; }
+
+        /* NWS alert states - outline + coloured text only; tap the bar to swap back to the forecast */
+        .bottom-bar.has-alert { border-width: 2px; cursor: pointer; }
+        .bottom-bar.has-alert .short-forecast { font-style: normal; font-weight: 600; }
+        .bottom-bar.alert-extreme { border-color: #ff5b4a; }
+        .bottom-bar.alert-extreme .short-forecast { color: #ff7a68; }
+        .bottom-bar.alert-severe { border-color: #e74c3c; }
+        .bottom-bar.alert-severe .short-forecast { color: #ff8073; }
+        .bottom-bar.alert-moderate { border-color: #e67e22; }
+        .bottom-bar.alert-moderate .short-forecast { color: #ffa953; }
+        .bottom-bar.alert-minor { border-color: #f1c40f; }
+        .bottom-bar.alert-minor .short-forecast { color: #ffd95e; }
+        /* tapped back to the forecast: dimmed outline still hints the alert is in effect */
+        .bottom-bar.alert-muted .short-forecast { font-style: italic; font-weight: 400; color: rgba(255, 255, 255, 0.7); }
+        .bottom-bar.alert-muted.alert-extreme { border-color: rgba(255, 91, 74, 0.45); }
+        .bottom-bar.alert-muted.alert-severe { border-color: rgba(231, 76, 60, 0.45); }
+        .bottom-bar.alert-muted.alert-moderate { border-color: rgba(230, 126, 34, 0.45); }
+        .bottom-bar.alert-muted.alert-minor { border-color: rgba(241, 196, 15, 0.45); }
     </style>
 </head>
 <body>
@@ -173,18 +237,7 @@
             <div class="temp-label temp-label-spacer">Current</div>
             <div class="temp-ring-container">
                 <svg class="temp-ring-svg" width="300" height="100" viewBox="0 0 300 100">
-                    <defs>
-                        <filter id="ring-halo" x="-30%" y="-30%" width="160%" height="160%">
-                            <feGaussianBlur stdDeviation="4"/>
-                        </filter>
-                    </defs>
-                    <!-- stroke set on the group so the JS temp-color update hits pill and halo together -->
-                    <g id="temp-ring" stroke="#ffffff">
-                        <!-- halo (disabled, restore by uncommenting):
-                        <rect x="12" y="6" width="276" height="88" rx="44" fill="none" stroke-width="13" opacity="0.35" filter="url(#ring-halo)"/>
-                        -->
-                        <rect x="12" y="6" width="276" height="88" rx="44" fill="none" stroke-width="6" opacity="0.9"/>
-                    </g>
+                    <rect id="temp-ring" x="12" y="6" width="276" height="88" rx="44" fill="none" stroke="#ffffff" stroke-width="6" opacity="0.9"/>
                 </svg>
                 <div class="temp-current"><a id="temp-link" href="#" target="_blank"><span id="temp-now">--</span><span class="unit">°F</span></a></div>
             </div>
@@ -250,21 +303,55 @@
         
         <!-- Row 4: Extra data -->
         <div class="card extra-data">
-            <div class="extra-item"><div class="value"><span id="humidity">--</span>%</div><div class="label">Humidity</div></div>
-            <div class="extra-item"><div class="value"><span id="observed-high">--</span>°</div><div class="label">24hr High</div></div>
-            <div class="extra-item"><div class="value"><span id="observed-low">--</span>°</div><div class="label">24hr Low</div></div>
+            <div class="extra-item sun-item">
+                <svg class="sun-arc" viewBox="0 0 120 46" preserveAspectRatio="xMidYMid meet">
+                    <line x1="2" y1="38" x2="118" y2="38" stroke="rgba(255,255,255,0.22)" stroke-width="2"/>
+                    <path id="sun-path" d="M8 38 A 52 34 0 0 1 112 38" fill="none" stroke="rgba(255,255,255,0.32)" stroke-width="2" stroke-dasharray="4 4"/>
+                    <circle id="sun-dot" cx="8" cy="38" r="7.5" fill="#ffd166"/>
+                </svg>
+                <div class="sun-times">
+                    <div class="sun-up">↑ <span id="sunrise-time">--</span></div>
+                    <div class="sun-down">↓ <span id="sunset-time">--</span></div>
+                </div>
+                <svg class="moon-icon" viewBox="-12 -12 24 24">
+                    <circle r="10.5" fill="rgba(255,255,255,0.07)"/>
+                    <path id="moon-lit" d="" fill="#dfe6ff"/>
+                    <!-- full-disc outline so the unlit sliver reads against it -->
+                    <circle r="10.5" fill="none" stroke="rgba(255,255,255,0.45)" stroke-width="1"/>
+                </svg>
+            </div>
+            <div class="extra-item dew-item"><div class="value"><span id="dew-point">--</span>°</div><div class="label">Dew Point</div></div>
+            <div class="extra-item gust-item"><div class="value"><span id="peak-gust">--</span></div><div class="label">24hr Gust</div></div>
+            <div class="extra-item hilo">
+                <div class="hilo-row high"><span class="label">24hr High</span><span class="val"><span id="observed-high">--</span>°</span></div>
+                <div class="hilo-row low"><span class="label">24hr Low</span><span class="val"><span id="observed-low">--</span>°</span></div>
+            </div>
         </div>
         
-        <div class="card short-forecast" id="short-forecast">Loading forecast...</div>
-        <div class="update-footer" id="update-time">--</div>
+        <div class="card bottom-bar" id="bottom-bar">
+            <button class="radar-btn" id="radar-btn">RADAR</button>
+            <div class="short-forecast" id="short-forecast">Loading forecast...</div>
+            <div class="update-footer" id="update-time">--</div>
+        </div>
+    </div>
+    <div class="radar-modal" id="radar-modal">
+        <div class="radar-head">
+            <span class="radar-title">Radar</span>
+            <span class="radar-time" id="radar-time">--</span>
+            <button class="radar-close" id="radar-play">⏸</button>
+            <input type="range" id="radar-slider" min="0" max="0" step="1" value="0">
+            <button class="radar-close" id="radar-style">Style: Classic</button>
+            <button class="radar-close" id="radar-close">✕ Close</button>
+        </div>
+        <div class="radar-map" id="radar-map"></div>
+        <div class="radar-legend" id="radar-legend"></div>
     </div>
     <script src="keys.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
     <script src="https://cdn.jsdelivr.net/npm/chartjs-plugin-datalabels@2"></script>
     <script>
-        // datalabels plugin
         Chart.register(ChartDataLabels);
-        
+
         // API keys live in keys.js (see keys.example.js)
         const KEYS = window.WEATHER_KEYS || {};
         const CONFIG = {
@@ -629,56 +716,29 @@
             if (!ring || temp === null) return;
             
             let color;
-            
-            if (temp <= 32) {
-                // 0-32F: White (flipped - white at 0, gray at 32)
-                const ratio = Math.max(0, Math.min(1, temp / 32));
-                const gray = Math.round(255 - (55 * ratio)); // 255 to 200
+            if (temp <= 32) {          // white -> gray
+                const t = Math.max(0, Math.min(1, temp / 32));
+                const gray = Math.round(255 - 55 * t);
                 color = `rgb(${gray}, ${gray}, ${gray})`;
-            } else if (temp <= 45) {
-                // 33-45F: Light Blue (gradient from lighter to darker)
-                const ratio = (temp - 33) / 12;
-                const r = Math.round(173 - (43 * ratio)); // 173 to 130
-                const g = Math.round(216 - (16 * ratio)); // 216 to 200
-                const b = Math.round(230 - (5 * ratio)); // 230 to 225
-                color = `rgb(${r}, ${g}, ${b})`;
-            } else if (temp <= 55) {
-                // 45-55F: Dark Blue (darker at 55)
-                const ratio = (temp - 45) / 10;
-                const r = Math.round(130 - (110 * ratio)); // 130 to 20
-                const g = Math.round(200 - (80 * ratio)); // 200 to 120
-                const b = Math.round(225 - (45 * ratio)); // 225 to 180
-                color = `rgb(${r}, ${g}, ${b})`;
-            } else if (temp <= 65) {
-                // 55-65F: Green (light green at 56, darker green at 65)
-                const ratio = (temp - 55) / 10;
-                const r = Math.round(144 - (110 * ratio)); // 144 to 34
-                const g = Math.round(238 - (43 * ratio)); // 238 to 195
-                const b = Math.round(144 - (110 * ratio)); // 144 to 34
-                color = `rgb(${r}, ${g}, ${b})`;
-            } else if (temp <= 75) {
-                // 65-75F: Yellow
-                const ratio = (temp - 65) / 10;
-                const r = Math.round(255); // Keep at 255
-                const g = Math.round(235 - (20 * ratio)); // 235 to 215
-                const b = Math.round(59 - (59 * ratio)); // 59 to 0
-                color = `rgb(${r}, ${g}, ${b})`;
-            } else if (temp <= 85) {
-                // 75-85F: Orange
-                const ratio = (temp - 75) / 10;
-                const r = Math.round(255); // Keep at 255
-                const g = Math.round(165 - (65 * ratio)); // 165 to 100
-                const b = Math.round(0); // Keep at 0
-                color = `rgb(${r}, ${g}, ${b})`;
-            } else {
-                // 85-100F: Red
-                const ratio = Math.min(1, (temp - 85) / 15);
-                const r = Math.round(255); // Keep at 255
-                const g = Math.round(100 - (100 * ratio)); // 100 to 0
-                const b = Math.round(0); // Keep at 0
-                color = `rgb(${r}, ${g}, ${b})`;
+            } else if (temp <= 45) {   // light blue
+                const t = (temp - 33) / 12;
+                color = `rgb(${Math.round(173 - 43 * t)}, ${Math.round(216 - 16 * t)}, ${Math.round(230 - 5 * t)})`;
+            } else if (temp <= 55) {   // deep blue
+                const t = (temp - 45) / 10;
+                color = `rgb(${Math.round(130 - 110 * t)}, ${Math.round(200 - 80 * t)}, ${Math.round(225 - 45 * t)})`;
+            } else if (temp <= 65) {   // green
+                const t = (temp - 55) / 10;
+                color = `rgb(${Math.round(144 - 110 * t)}, ${Math.round(238 - 43 * t)}, ${Math.round(144 - 110 * t)})`;
+            } else if (temp <= 75) {   // yellow
+                const t = (temp - 65) / 10;
+                color = `rgb(255, ${Math.round(235 - 20 * t)}, ${Math.round(59 - 59 * t)})`;
+            } else if (temp <= 85) {   // orange
+                const t = (temp - 75) / 10;
+                color = `rgb(255, ${Math.round(165 - 65 * t)}, 0)`;
+            } else {                   // red
+                const t = Math.min(1, (temp - 85) / 15);
+                color = `rgb(255, ${Math.round(100 - 100 * t)}, 0)`;
             }
-            
             ring.setAttribute('stroke', color);
         }
 
@@ -701,6 +761,7 @@
 
         function updateWeatherDisplay(station) {
             const obs = station.OBSERVATIONS;
+            let latestTemp = null, latestRH = null;
 
             document.getElementById('temp-link').href = `https://mesowest.utah.edu/cgi-bin/droman/meso_base_dyn.cgi?stn=${CONFIG.MESOWEST_STATION}`;
 
@@ -711,9 +772,11 @@
                 const temps = obs.air_temp_set_1.filter(t => t !== null);
                 if (temps.length) {
                     const currentTemp = Math.round(temps[temps.length - 1]);
+                    latestTemp = temps[temps.length - 1];
+                    const hi = Math.max(...temps), lo = Math.min(...temps);
                     document.getElementById('temp-now').textContent = currentTemp;
-                    document.getElementById('observed-high').textContent = Math.round(Math.max(...temps));
-                    document.getElementById('observed-low').textContent = Math.round(Math.min(...temps));
+                    document.getElementById('observed-high').textContent = Math.round(hi);
+                    document.getElementById('observed-low').textContent = Math.round(lo);
                     updateTempRingColor(currentTemp);
                 }
             }
@@ -724,7 +787,10 @@
             }
             if (obs.wind_gust_set_1) {
                 const g = obs.wind_gust_set_1.filter(x => x !== null);
-                if (g.length) document.getElementById('wind-gust').textContent = Math.round(g[g.length - 1]);
+                if (g.length) {
+                    document.getElementById('wind-gust').textContent = Math.round(g[g.length - 1]);
+                    document.getElementById('peak-gust').textContent = Math.round(Math.max(...g)) + ' mph';
+                }
             }
             if (obs.wind_direction_set_1) {
                 const d = obs.wind_direction_set_1.filter(x => x !== null);
@@ -736,10 +802,22 @@
             if (obs.relative_humidity_set_1) {
                 const h = obs.relative_humidity_set_1.filter(x => x !== null);
                 if (h.length) {
-                    const rh = Math.round(h[h.length - 1]);
-                    document.getElementById('humidity').textContent = rh;
-                    document.getElementById('wind-humidity').textContent = rh;
+                    latestRH = h[h.length - 1];
+                    document.getElementById('wind-humidity').textContent = Math.round(latestRH);
                 }
+            }
+
+            // Dew point from temp + RH (Magnus formula, done in C then back to F)
+            if (latestTemp !== null && latestRH !== null && latestRH > 0) {
+                const tC = (latestTemp - 32) * 5 / 9;
+                const a = 17.625, b = 243.04;
+                const alpha = Math.log(latestRH / 100) + (a * tC) / (b + tC);
+                const dewC = (b * alpha) / (a - alpha);
+                const dewF = Math.round(dewC * 9 / 5 + 32);
+                const el = document.getElementById('dew-point');
+                el.textContent = dewF;
+                el.parentElement.style.color = dewPointColor(dewF);
+                el.parentElement.title = dewPointLabel(dewF);
             }
 
             const pressureField = obs.altimeter_set_1 || obs.pressure_set_1;
@@ -752,7 +830,8 @@
                     document.getElementById('pressure-now').textContent = p[p.length - 1].toFixed(2);
                     
                     // 3-hour tendency (WMO convention): compare against the obs closest to 3 hrs ago.
-                    // <0.02 steady | 0.02-0.06 gentle | >0.06 rapid (the storm's-coming signal)
+                    // Steady band is 0.03 inHg (~1 hPa) so the semidiurnal tide, which alone moves
+                    // pressure that much in 3 hours, doesn't read as weather. Above 0.06 is a real fall.
                     const lastT = new Date(times[times.length - 1]).getTime();
                     const target = lastT - 3 * 3600 * 1000;
                     let i3 = 0;
@@ -763,7 +842,7 @@
                         const diff3 = p[p.length - 1] - p[i3];
                         const el = document.getElementById('pressure-trend');
                         const mag = Math.abs(diff3);
-                        if (mag < 0.02) {
+                        if (mag < 0.03) {
                             el.textContent = '→ steady';
                             el.className = 'pressure-trend trend-stable';
                         } else if (mag <= 0.06) {
@@ -809,6 +888,33 @@
                     }
                 }
             }
+        }
+
+        // Dew point comfort scale (°F): dry blue -> comfortable green -> humid orange -> oppressive red
+        function dewPointColor(dp) {
+            const stops = [
+                [40, [143, 211, 255]],  // very dry
+                [50, [110, 231, 160]],  // pleasant
+                [58, [212, 225, 87]],   // noticeable
+                [64, [255, 183, 77]],   // humid
+                [70, [255, 112, 67]],   // very humid
+                [76, [214, 40, 40]]     // oppressive
+            ];
+            if (dp <= stops[0][0]) return `rgb(${stops[0][1].join(',')})`;
+            if (dp >= stops[stops.length - 1][0]) return `rgb(${stops[stops.length - 1][1].join(',')})`;
+            for (let i = 0; i < stops.length - 1; i++) {
+                const [t0, c0] = stops[i], [t1, c1] = stops[i + 1];
+                if (dp >= t0 && dp <= t1) {
+                    const r = (dp - t0) / (t1 - t0);
+                    return `rgb(${c0.map((c, j) => Math.round(c + (c1[j] - c) * r)).join(',')})`;
+                }
+            }
+            return '#fff';
+        }
+
+        function dewPointLabel(dp) {
+            return dp < 50 ? 'Dry' : dp < 58 ? 'Comfortable' : dp < 64 ? 'Noticeably humid'
+                : dp < 70 ? 'Humid' : dp < 76 ? 'Very humid' : 'Oppressive';
         }
 
         function degreesToCardinal(deg) {
@@ -857,7 +963,8 @@
             }
             if (high !== null) document.getElementById('forecast-high').textContent = high;
             if (low !== null) document.getElementById('forecast-low').textContent = low;
-            document.getElementById('short-forecast').textContent = forecast || 'Forecast unavailable';
+            currentShortForecast = forecast;
+            renderBottomBar();
             
             // Update 7-day forecast chart
             const dailyData = [];
@@ -904,6 +1011,80 @@
                 forecastChart.data.datasets[1].data = precips;
                 forecastChart.update('none');
             }
+        }
+
+        // NWS alerts: the bottom bar shows the forecast phrase normally and becomes an
+        // outlined warning banner while an alert is in effect (tap it to toggle back)
+        let currentShortForecast = '';
+        let activeAlert = null;
+        let showForecastInstead = false;  // set by tapping the bar while an alert is up
+
+        function renderBottomBar() {
+            const bar = document.getElementById('bottom-bar');
+            const el = document.getElementById('short-forecast');
+            bar.className = 'card bottom-bar';
+            if (activeAlert && !showForecastInstead) {
+                bar.classList.add('has-alert', 'alert-' + activeAlert.cls);
+                el.textContent = activeAlert.text;
+            } else {
+                if (activeAlert) bar.classList.add('has-alert', 'alert-' + activeAlert.cls, 'alert-muted');
+                el.textContent = currentShortForecast || 'Forecast unavailable';
+            }
+        }
+
+        function enableAlertToggle() {
+            document.getElementById('bottom-bar').addEventListener('click', () => {
+                if (!activeAlert) return;
+                showForecastInstead = !showForecastInstead;
+                renderBottomBar();
+            });
+        }
+
+        async function fetchAlerts() {
+            try {
+                const r = await fetch(`https://api.weather.gov/alerts/active?point=${CONFIG.STATION_LAT},${CONFIG.STATION_LON}`, { headers: { 'User-Agent': 'WeatherStation/1.0' } });
+                const d = await r.json();
+                // Only surface alerts already in effect, or starting later today - NWS "active"
+                // also returns watches that don't begin for days
+                const nowD = new Date();
+                const feats = (d.features || []).filter(f => {
+                    if (!f.properties || !f.properties.event) return false;
+                    const o = f.properties.onset || f.properties.effective;
+                    if (!o) return true;
+                    const onsetD = new Date(o);
+                    return onsetD <= nowD || onsetD.toDateString() === nowD.toDateString();
+                });
+                if (!feats.length) { activeAlert = null; showForecastInstead = false; renderBottomBar(); return; }
+
+                // in-effect alerts outrank pending ones, then by severity
+                const now = Date.now();
+                const startOf = f => f.properties.onset ? new Date(f.properties.onset).getTime() : 0;
+                const rank = { Extreme: 4, Severe: 3, Moderate: 2, Minor: 1, Unknown: 0 };
+                feats.sort((a, b) => {
+                    const aPending = startOf(a) > now, bPending = startOf(b) > now;
+                    if (aPending !== bPending) return aPending ? 1 : -1;
+                    return (rank[b.properties.severity] || 0) - (rank[a.properties.severity] || 0);
+                });
+                const p = feats[0].properties;
+                const cls = { Extreme: 'extreme', Severe: 'severe', Moderate: 'moderate', Minor: 'minor' }[p.severity] || 'moderate';
+
+                // `expires` is when the message needs refreshing, not when the event ends - prefer `ends`
+                const fmt = d => d.toLocaleString([], { weekday: 'short', hour: 'numeric', minute: '2-digit' });
+                const onset = p.onset ? new Date(p.onset) : null;
+                const end = p.ends ? new Date(p.ends) : (p.expires ? new Date(p.expires) : null);
+                let text = '⚠ ' + p.event;
+                if (onset && onset.getTime() > now) {
+                    text += ' · ' + fmt(onset) + (end ? ' – ' + fmt(end) : '');   // hasn't started yet
+                } else if (end) {
+                    text += ' until ' + fmt(end);
+                }
+                if (feats.length > 1) text += `  (+${feats.length - 1} more)`;
+
+                const isNew = !activeAlert || activeAlert.text !== text;
+                activeAlert = { text, cls };
+                if (isNew) showForecastInstead = false;  // a new alert always announces itself
+                renderBottomBar();
+            } catch (e) { console.error('NWS alerts error:', e); }  // keep last known state
         }
 
         async function fetchAQI() {
@@ -955,6 +1136,232 @@
             });
         }
 
+        // Sunrise/sunset from lat/lon (NOAA solar position algorithm) - no API needed
+        function computeSunTimes(date, lat, lon) {
+            const rad = Math.PI / 180, dayMs = 86400000, J1970 = 2440588, J2000 = 2451545;
+            const toDays = d => d.valueOf() / dayMs - 0.5 + J1970 - J2000;
+            const fromJulian = j => new Date((j + 0.5 - J1970) * dayMs);
+            const e = rad * 23.4397;
+            const lw = rad * -lon, phi = rad * lat;
+            const d = toDays(date);
+            const n = Math.round(d - 0.0009 - lw / (2 * Math.PI));
+            const ds = 0.0009 + lw / (2 * Math.PI) + n;
+            const M = rad * (357.5291 + 0.98560028 * ds);
+            const L = M + rad * (1.9148 * Math.sin(M) + 0.02 * Math.sin(2 * M) + 0.0003 * Math.sin(3 * M)) + rad * 102.9372 + Math.PI;
+            const dec = Math.asin(Math.sin(e) * Math.sin(L));
+            const Jnoon = J2000 + ds + 0.0053 * Math.sin(M) - 0.0069 * Math.sin(2 * L);
+            const h0 = -0.833 * rad;
+            const cosW = (Math.sin(h0) - Math.sin(phi) * Math.sin(dec)) / (Math.cos(phi) * Math.cos(dec));
+            if (cosW > 1 || cosW < -1) return null;  // polar day/night
+            const w0 = Math.acos(cosW);
+            const Jset = J2000 + (0.0009 + (w0 + lw) / (2 * Math.PI) + n) + 0.0053 * Math.sin(M) - 0.0069 * Math.sin(2 * L);
+            return { sunrise: fromJulian(Jnoon - (Jset - Jnoon)), sunset: fromJulian(Jset) };
+        }
+
+        function updateSunDisplay() {
+            const now = new Date();
+            const t = computeSunTimes(now, CONFIG.STATION_LAT, CONFIG.STATION_LON);
+            if (!t) return;
+            const fmt = d => d.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+            document.getElementById('sunrise-time').textContent = fmt(t.sunrise);
+            document.getElementById('sunset-time').textContent = fmt(t.sunset);
+
+            // Walk the dot along the arc: 0 at sunrise, 1 at sunset; dimmed at the ends overnight
+            const frac = (now - t.sunrise) / (t.sunset - t.sunrise);
+            const path = document.getElementById('sun-path');
+            const dot = document.getElementById('sun-dot');
+            const pt = path.getPointAtLength(path.getTotalLength() * Math.min(1, Math.max(0, frac)));
+            dot.setAttribute('cx', pt.x);
+            dot.setAttribute('cy', pt.y);
+            const isDay = frac >= 0 && frac <= 1;
+            dot.setAttribute('opacity', isDay ? 1 : 0.3);
+            dot.setAttribute('fill', isDay ? '#ffd166' : '#9aa7ff');
+        }
+
+        // Moon illuminated fraction + waxing/waning from sun/moon ecliptic positions
+        function moonIllumination(date) {
+            const rad = Math.PI / 180;
+            const d = date.valueOf() / 86400000 - 0.5 + 2440588 - 2451545;  // days since J2000
+            const e = rad * 23.4397;
+
+            const M = rad * (357.5291 + 0.98560028 * d);
+            const Ls = M + rad * (1.9148 * Math.sin(M) + 0.02 * Math.sin(2 * M) + 0.0003 * Math.sin(3 * M)) + rad * 102.9372 + Math.PI;
+            const sRa = Math.atan2(Math.sin(Ls) * Math.cos(e), Math.cos(Ls));
+            const sDec = Math.asin(Math.sin(e) * Math.sin(Ls));
+
+            const L = rad * (218.316 + 13.176396 * d);   // moon mean longitude
+            const Mm = rad * (134.963 + 13.064993 * d);  // moon mean anomaly
+            const F = rad * (93.272 + 13.229350 * d);    // mean distance of moon from node
+            const lon = L + rad * 6.289 * Math.sin(Mm);
+            const lat = rad * 5.128 * Math.sin(F);
+            const dist = 385001 - 20905 * Math.cos(Mm);
+            const mRa = Math.atan2(Math.sin(lon) * Math.cos(e) - Math.tan(lat) * Math.sin(e), Math.cos(lon));
+            const mDec = Math.asin(Math.sin(lat) * Math.cos(e) + Math.cos(lat) * Math.sin(e) * Math.sin(lon));
+
+            const sdist = 149598000;
+            const phi = Math.acos(Math.sin(sDec) * Math.sin(mDec) + Math.cos(sDec) * Math.cos(mDec) * Math.cos(sRa - mRa));
+            const inc = Math.atan2(sdist * Math.sin(phi), dist - sdist * Math.cos(phi));
+            const angle = Math.atan2(Math.cos(sDec) * Math.sin(sRa - mRa), Math.sin(sDec) * Math.cos(mDec) - Math.cos(sDec) * Math.sin(mDec) * Math.cos(sRa - mRa));
+            const phase = 0.5 + 0.5 * inc * (angle < 0 ? -1 : 1) / Math.PI;  // 0 new, 0.5 full
+            return { fraction: (1 + Math.cos(inc)) / 2, phase, waxing: phase < 0.5 };
+        }
+
+        function updateMoonPhase() {
+            const m = moonIllumination(new Date());
+            const k = m.fraction, waxing = m.waxing;
+            const R = 10.5;
+            const a = R * (2 * k - 1);          // terminator semi-axis; <0 crescent, >0 gibbous
+            const sweep = a >= 0 ? 1 : 0;
+            const path = `M 0 ${-R} A ${R} ${R} 0 0 1 0 ${R} A ${Math.abs(a)} ${R} 0 0 ${sweep} 0 ${-R} Z`;
+            const el = document.getElementById('moon-lit');
+            el.setAttribute('d', path);
+            el.setAttribute('transform', waxing ? '' : 'scale(-1,1)');  // mirror for waning
+        }
+
+        // Radar overlay: last hour of NEXRAD (IEM, weather.gov colours) or RainViewer (dark look),
+        // looped over a CARTO basemap centred on the station. Leaflet loads lazily on first open.
+        const RADAR_STYLES = [
+            { name: 'Classic', source: 'iem', base: 'https://basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', opacity: 0.8, marker: '#c0392b' },
+            { name: 'Dark', source: 'rainviewer', scheme: 6, base: 'https://basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', opacity: 0.85, marker: '#74ebd5' }
+        ];
+        let radarMap = null, radarBase = null, radarMarker = null, radarLayers = [], radarTimes = [],
+            radarTimer = null, radarIdx = 0, radarStyle = 0, radarPlaying = true, radarOpacity = 0.8;
+
+        function loadAsset(tag, attrs) {
+            return new Promise((resolve, reject) => {
+                const el = document.createElement(tag);
+                Object.assign(el, attrs);
+                el.onload = resolve;
+                el.onerror = reject;
+                document.head.appendChild(el);
+            });
+        }
+
+        async function openRadar() {
+            document.getElementById('radar-modal').classList.add('open');
+            try {
+                if (typeof L === 'undefined') {
+                    loadAsset('link', { rel: 'stylesheet', href: 'https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.css' });
+                    await loadAsset('script', { src: 'https://cdn.jsdelivr.net/npm/leaflet@1.9.4/dist/leaflet.js' });
+                }
+                if (!radarMap) {
+                    radarMap = L.map('radar-map').setView([CONFIG.STATION_LAT, CONFIG.STATION_LON], 8);
+                } else {
+                    radarMap.invalidateSize();
+                }
+                await applyRadarStyle();
+            } catch (e) {
+                console.error('Radar error:', e);
+                document.getElementById('radar-time').textContent = 'Radar unavailable';
+            }
+        }
+
+        async function applyRadarStyle() {
+            const s = RADAR_STYLES[radarStyle];
+            document.getElementById('radar-style').textContent = 'Style: ' + s.name;
+            // the dBZ legend only describes the NEXRAD ramp
+            document.getElementById('radar-legend').style.display = s.source === 'iem' ? '' : 'none';
+
+            if (radarBase) radarMap.removeLayer(radarBase);
+            radarBase = L.tileLayer(s.base, { maxZoom: 12, attribution: '&copy; OpenStreetMap, &copy; CARTO' }).addTo(radarMap);
+            radarBase.bringToBack();
+
+            radarLayers.forEach(l => radarMap.removeLayer(l));
+            radarLayers = [];
+            radarTimes = [];
+
+            if (s.source === 'iem') {
+                // IEM serves time-lagged NEXRAD composites in 5-minute steps back to 55 min
+                for (let m = 55; m >= 0; m -= 5) {
+                    const suffix = m === 0 ? '' : `-m${String(m).padStart(2, '0')}m`;
+                    radarLayers.push(L.tileLayer(`https://mesonet.agron.iastate.edu/cache/tile.py/1.0.0/nexrad-n0q-900913${suffix}/{z}/{x}/{y}.png`,
+                        { opacity: 0, maxZoom: 12, attribution: 'NEXRAD: Iowa State IEM' }).addTo(radarMap));
+                    radarTimes.push(new Date(Date.now() - m * 60000));
+                }
+            } else {
+                const r = await fetch('https://api.rainviewer.com/public/weather-maps.json');
+                const d = await r.json();
+                ((d.radar && d.radar.past) || []).slice(-7).forEach(f => {
+                    radarLayers.push(L.tileLayer(`${d.host}${f.path}/512/{z}/{x}/{y}/${s.scheme}/1_1.png`,
+                        { opacity: 0, maxZoom: 12, tileSize: 512, zoomOffset: -1, attribution: 'RainViewer' }).addTo(radarMap));
+                    radarTimes.push(new Date(f.time * 1000));
+                });
+            }
+
+            if (radarMarker) radarMap.removeLayer(radarMarker);
+            radarMarker = L.circleMarker([CONFIG.STATION_LAT, CONFIG.STATION_LON],
+                { radius: 5, color: s.marker, weight: 2, fillColor: s.marker, fillOpacity: 0.9 }).addTo(radarMap);
+
+            startRadarLoop(s.opacity);
+        }
+
+        function showRadarFrame(i) {
+            radarIdx = i;
+            radarLayers.forEach((l, j) => l.setOpacity(j === i ? radarOpacity : 0));
+            const t = radarTimes[i];
+            if (t) document.getElementById('radar-time').textContent = t.toLocaleTimeString([], { hour: 'numeric', minute: '2-digit' });
+            document.getElementById('radar-slider').value = i;
+        }
+
+        function setRadarPlaying(on) {
+            radarPlaying = on;
+            document.getElementById('radar-play').textContent = on ? '⏸' : '▶';
+            clearInterval(radarTimer);
+            radarTimer = on ? setInterval(() => showRadarFrame((radarIdx + 1) % radarLayers.length), 500) : null;
+        }
+
+        function startRadarLoop(opacity) {
+            radarOpacity = opacity;
+            if (!radarLayers.length) { clearInterval(radarTimer); document.getElementById('radar-time').textContent = 'No radar frames'; return; }
+            document.getElementById('radar-slider').max = radarLayers.length - 1;
+            showRadarFrame(0);
+            setRadarPlaying(true);
+        }
+
+        // Standard NWS NEXRAD reflectivity ramp (dBZ)
+        const DBZ_RAMP = [
+            [5, '#04e9e7'], [10, '#019ff4'], [15, '#0300f4'], [20, '#02fd02'], [25, '#01c501'], [30, '#008e00'],
+            [35, '#fdf802'], [40, '#e5bc00'], [45, '#fd9500'], [50, '#fd0000'], [55, '#d40000'], [60, '#bc0000'],
+            [65, '#f800fd'], [70, '#9854c6'], [75, '#fdfdfd']
+        ];
+
+        function buildRadarLegend() {
+            const bars = DBZ_RAMP.map(([, c]) => `<i style="background:${c}"></i>`).join('');
+            document.getElementById('radar-legend').innerHTML =
+                `<div class="radar-legend-title">Reflectivity (dBZ)</div>
+                 <div class="radar-legend-bar">${bars}</div>
+                 <div class="radar-legend-labels"><span>5</span><span>20</span><span>35</span><span>50</span><span>65</span><span>75+</span></div>
+                 <div class="radar-legend-words"><span>light</span><span>moderate</span><span>heavy</span><span>hail</span></div>`;
+        }
+
+        function closeRadar() {
+            clearInterval(radarTimer);
+            radarTimer = null;
+            document.getElementById('radar-modal').classList.remove('open');
+        }
+
+        function enableRadar() {
+            buildRadarLegend();
+            document.getElementById('radar-btn').addEventListener('click', (e) => {
+                e.stopPropagation();  // don't also toggle the alert bar
+                openRadar();
+            });
+            document.getElementById('radar-close').addEventListener('click', closeRadar);
+            document.getElementById('radar-play').addEventListener('click', () => {
+                if (radarLayers.length) setRadarPlaying(!radarPlaying);
+            });
+            // dragging the slider pauses the loop and scrubs to that frame
+            document.getElementById('radar-slider').addEventListener('input', (e) => {
+                if (!radarLayers.length) return;
+                if (radarPlaying) setRadarPlaying(false);
+                showRadarFrame(+e.target.value);
+            });
+            document.getElementById('radar-style').addEventListener('click', () => {
+                radarStyle = (radarStyle + 1) % RADAR_STYLES.length;
+                applyRadarStyle();
+            });
+        }
+
         function enableFullscreen() {
             document.addEventListener('dblclick', () => {
                 if (!document.fullscreenElement) document.documentElement.requestFullscreen().catch(() => {});
@@ -968,11 +1375,19 @@
             initWeekChart();
             enableFullscreen();
             enableTooltipDismiss();
+            enableAlertToggle();
+            enableRadar();
+            updateSunDisplay();
+            updateMoonPhase();
+            setInterval(updateSunDisplay, 60 * 1000);
+            setInterval(updateMoonPhase, 60 * 60 * 1000);
             await fetchMesoWestData();
             await fetchNWSForecast();
+            await fetchAlerts();
             await fetchAQI();
             setInterval(fetchMesoWestData, CONFIG.UPDATE_INTERVAL_WEATHER);
             setInterval(fetchNWSForecast, CONFIG.UPDATE_INTERVAL_FORECAST);
+            setInterval(fetchAlerts, CONFIG.UPDATE_INTERVAL_FORECAST);
             setInterval(fetchAQI, CONFIG.UPDATE_INTERVAL_AQI);
             
             // Refresh data when page becomes visible again (Safari suspends timers)
@@ -980,6 +1395,7 @@
                 if (document.visibilityState === 'visible') {
                     await fetchMesoWestData();
                     await fetchNWSForecast();
+                    await fetchAlerts();
                     await fetchAQI();
                 }
             });
