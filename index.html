@@ -289,6 +289,8 @@
             <div class="temp-ring-container">
                 <svg class="temp-ring-svg" width="300" height="100" viewBox="0 0 300 100">
                     <rect id="temp-ring" x="12" y="6" width="276" height="88" rx="44" fill="none" stroke="#ffffff" stroke-width="6" opacity="0.9"/>
+                    <!-- hairline down the centre of the black band, only shown above 100F -->
+                    <rect id="temp-ring-core" x="12" y="6" width="276" height="88" rx="44" fill="none" stroke="#8b1a1a" stroke-width="2.5" style="display:none"/>
                 </svg>
                 <div class="temp-current"><a id="temp-link" href="#" target="_blank"><span id="temp-now">--</span><span class="unit">°F</span></a></div>
             </div>
@@ -777,7 +779,20 @@
         function updateTempRingColor(temp) {
             const ring = document.getElementById('temp-ring');
             if (!ring || temp === null) return;
-            
+
+            // triple digits get their own treatment: thick black band with a dark red core
+            const core = document.getElementById('temp-ring-core');
+            if (temp > 100) {
+                ring.setAttribute('stroke', '#000000');
+                ring.setAttribute('stroke-width', '10');
+                ring.setAttribute('opacity', '1');
+                core.style.display = '';
+                return;
+            }
+            core.style.display = 'none';
+            ring.setAttribute('stroke-width', '6');
+            ring.setAttribute('opacity', '0.9');
+
             let color;
             if (temp <= 32) {          // white -> gray
                 const t = Math.max(0, Math.min(1, temp / 32));
