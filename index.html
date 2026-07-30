@@ -776,6 +776,38 @@
             });
         }
 
+        // Ring ramp: white through greys to the freeze, blue past the thaw, green peaking at 63,
+        // a short yellow window, orange through the 80s, red across the 90s.
+        const RING_STOPS = [
+            [0,   [255, 255, 255]], [12,  [223, 229, 236]], [24,  [180, 191, 204]],
+            [32,  [142, 154, 168]], [35,  [79, 163, 216]],  [45,  [43, 135, 198]],
+            [52,  [20, 120, 180]],  [55,  [42, 168, 137]],  [63,  [34, 195, 34]],
+            [69,  [140, 200, 42]],  [72,  [255, 217, 59]],  [77,  [255, 198, 31]],
+            [82,  [255, 156, 31]],  [87,  [250, 108, 26]],  [90,  [226, 42, 22]],
+            [95,  [201, 18, 16]],   [100, [170, 0, 0]]
+        ];
+
+        // Dew point comfort scale (°F): dry blue -> comfortable green -> humid orange -> oppressive red
+        const DEW_STOPS = [
+            [40, [143, 211, 255]], [50, [110, 231, 160]], [58, [212, 225, 87]],
+            [64, [255, 183, 77]],  [70, [255, 112, 67]],  [76, [214, 40, 40]]
+        ];
+
+        // linear interpolation between the stops either side of v
+        function rampColor(stops, v) {
+            if (v <= stops[0][0]) return `rgb(${stops[0][1].join(',')})`;
+            const last = stops[stops.length - 1];
+            if (v >= last[0]) return `rgb(${last[1].join(',')})`;
+            for (let i = 0; i < stops.length - 1; i++) {
+                const [t0, c0] = stops[i], [t1, c1] = stops[i + 1];
+                if (v >= t0 && v <= t1) {
+                    const k = (v - t0) / (t1 - t0);
+                    return `rgb(${c0.map((c, j) => Math.round(c + (c1[j] - c) * k)).join(',')})`;
+                }
+            }
+            return '#fff';
+        }
+
         function updateTempRingColor(temp) {
             const ring = document.getElementById('temp-ring');
             if (!ring || temp === null) return;
@@ -793,31 +825,7 @@
             ring.setAttribute('stroke-width', '6');
             ring.setAttribute('opacity', '0.9');
 
-            let color;
-            if (temp <= 32) {          // white -> gray
-                const t = Math.max(0, Math.min(1, temp / 32));
-                const gray = Math.round(255 - 55 * t);
-                color = `rgb(${gray}, ${gray}, ${gray})`;
-            } else if (temp <= 45) {   // light blue
-                const t = (temp - 33) / 12;
-                color = `rgb(${Math.round(173 - 43 * t)}, ${Math.round(216 - 16 * t)}, ${Math.round(230 - 5 * t)})`;
-            } else if (temp <= 55) {   // deep blue
-                const t = (temp - 45) / 10;
-                color = `rgb(${Math.round(130 - 110 * t)}, ${Math.round(200 - 80 * t)}, ${Math.round(225 - 45 * t)})`;
-            } else if (temp <= 65) {   // green
-                const t = (temp - 55) / 10;
-                color = `rgb(${Math.round(144 - 110 * t)}, ${Math.round(238 - 43 * t)}, ${Math.round(144 - 110 * t)})`;
-            } else if (temp <= 75) {   // yellow
-                const t = (temp - 65) / 10;
-                color = `rgb(255, ${Math.round(235 - 20 * t)}, ${Math.round(59 - 59 * t)})`;
-            } else if (temp <= 85) {   // orange
-                const t = (temp - 75) / 10;
-                color = `rgb(255, ${Math.round(165 - 65 * t)}, 0)`;
-            } else {                   // red
-                const t = Math.min(1, (temp - 85) / 15);
-                color = `rgb(255, ${Math.round(100 - 100 * t)}, 0)`;
-            }
-            ring.setAttribute('stroke', color);
+            ring.setAttribute('stroke', rampColor(RING_STOPS, temp));
         }
 
         async function fetchMesoWestData() {
@@ -968,26 +976,8 @@
             }
         }
 
-        // Dew point comfort scale (°F): dry blue -> comfortable green -> humid orange -> oppressive red
         function dewPointColor(dp) {
-            const stops = [
-                [40, [143, 211, 255]],  // very dry
-                [50, [110, 231, 160]],  // pleasant
-                [58, [212, 225, 87]],   // noticeable
-                [64, [255, 183, 77]],   // humid
-                [70, [255, 112, 67]],   // very humid
-                [76, [214, 40, 40]]     // oppressive
-            ];
-            if (dp <= stops[0][0]) return `rgb(${stops[0][1].join(',')})`;
-            if (dp >= stops[stops.length - 1][0]) return `rgb(${stops[stops.length - 1][1].join(',')})`;
-            for (let i = 0; i < stops.length - 1; i++) {
-                const [t0, c0] = stops[i], [t1, c1] = stops[i + 1];
-                if (dp >= t0 && dp <= t1) {
-                    const r = (dp - t0) / (t1 - t0);
-                    return `rgb(${c0.map((c, j) => Math.round(c + (c1[j] - c) * r)).join(',')})`;
-                }
-            }
-            return '#fff';
+            return rampColor(DEW_STOPS, dp);
         }
 
         function dewPointLabel(dp) {
