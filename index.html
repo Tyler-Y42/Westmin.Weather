@@ -180,7 +180,10 @@
         .bottom-bar { grid-column: 1 / -1; display: flex; align-items: center; justify-content: center; position: relative; padding: 8px 12px; transition: background-color 0.3s ease; }
         /* max-width keeps the centred group clear of the radar button and timestamp */
         .bar-center { display: flex; align-items: center; justify-content: center; gap: 0.6rem; max-width: calc(100% - 18rem); color: rgba(255, 255, 255, 0.7); }
-        .short-forecast { text-align: center; font-size: clamp(1.19rem, 1.05vw, 1.26rem); color: inherit; font-style: italic; }
+        /* the phrase itself links out to the NWS page for this gridpoint */
+        .short-forecast { text-align: center; font-size: clamp(1.19rem, 1.05vw, 1.26rem); color: inherit; font-style: italic;
+            text-decoration: none; cursor: pointer; }
+        .short-forecast:hover { text-decoration: underline; text-underline-offset: 3px; }
         .update-footer { position: absolute; right: 0.9rem; font-size: 0.85rem; color: rgba(255, 255, 255, 0.3); white-space: nowrap; }
         /* "i" dot: only shown while an alert is up, opens the full advisory text */
         .alert-info { flex: 0 0 auto; width: 1.5rem; height: 1.5rem; border-radius: 50%; border: 1.5px solid currentColor;
@@ -235,7 +238,7 @@
         .radar-map { flex: 1; min-height: 0; background: #0b1020; }
 
         /* NWS alert states - outline + coloured text only; tap the bar to swap back to the forecast */
-        .bottom-bar.has-alert { border-width: 2px; cursor: pointer; }
+        .bottom-bar.has-alert { border-width: 2px; }
         .bottom-bar.has-alert .short-forecast { font-style: normal; font-weight: 600; }
         .bottom-bar.alert-extreme { border-color: #ff5b4a; }
         .bottom-bar.alert-extreme .bar-center { color: #ff7a68; }
@@ -245,12 +248,6 @@
         .bottom-bar.alert-moderate .bar-center { color: #ffa953; }
         .bottom-bar.alert-minor { border-color: #f1c40f; }
         .bottom-bar.alert-minor .bar-center { color: #ffd95e; }
-        /* tapped back to the forecast: dimmed outline still hints the alert is in effect */
-        .bottom-bar.alert-muted .short-forecast { font-style: italic; font-weight: 400; }
-        .bottom-bar.alert-muted.alert-extreme { border-color: rgba(255, 91, 74, 0.45); }
-        .bottom-bar.alert-muted.alert-severe { border-color: rgba(231, 76, 60, 0.45); }
-        .bottom-bar.alert-muted.alert-moderate { border-color: rgba(230, 126, 34, 0.45); }
-        .bottom-bar.alert-muted.alert-minor { border-color: rgba(241, 196, 15, 0.45); }
 
         /* Phone layout: two columns that scroll instead of the fixed kiosk grid. Gated behind
            these breakpoints so iPad (1080x778) and desktop rendering are untouched. */
@@ -387,7 +384,7 @@
         <div class="card bottom-bar" id="bottom-bar">
             <button class="radar-btn" id="radar-btn">RADAR</button>
             <div class="bar-center">
-                <div class="short-forecast" id="short-forecast">Loading forecast...</div>
+                <a class="short-forecast" id="short-forecast" href="#" target="_blank" rel="noopener">Loading forecast...</a>
                 <button class="alert-info" id="alert-info" hidden title="Read the full advisory">i</button>
             </div>
             <div class="update-footer" id="update-time">--</div>
@@ -1037,21 +1034,20 @@
             currentShortForecast = forecast;
             renderBottomBar();
             
-            // Update 7-day forecast chart
-            const dailyData = [];
-            for (let i = 0; i < periods.length && dailyData.length < 7; i += 2) {
-                const day = periods[i];
-                const night = periods[i + 1];
-                if (day && night) {
-                    const date = new Date(day.startTime);
-                    const dayName = date.toLocaleDateString([], { weekday: 'short' });
-                    dailyData.push({
-                        name: dayName,
-                        high: day.isDaytime ? day.temperature : night.temperature,
-                        low: night.isDaytime ? day.temperature : night.temperature
-                    });
-                }
+            // Group periods by their own date. Pairing them two at a time assumed the list
+            // starts with a daytime period, but after 6pm it starts with "Tonight", which
+            // pushed every high onto the day before it.
+            const byDay = new Map();
+            for (const p of periods) {
+                const d = new Date(p.startTime);
+                const key = d.toDateString();
+                if (!byDay.has(key)) byDay.set(key, { name: d.toLocaleDateString([], { weekday: 'short' }), high: null, low: null });
+                const entry = byDay.get(key);
+                if (p.isDaytime) entry.high = p.temperature;
+                else entry.low = p.temperature;
             }
+            // a day whose daylight hours have already passed has no high left to plot
+            const dailyData = [...byDay.values()].filter(d => d.high !== null).slice(0, 7);
             
             if (dailyData.length > 0 && weekChart) {
                 weekChart.data.labels = dailyData.map(d => d.name);
@@ -1088,32 +1084,31 @@
         // outlined warning banner while an alert is in effect (tap it to toggle back)
         let currentShortForecast = '';
         let activeAlert = null;
-        let showForecastInstead = false;  // set by tapping the bar while an alert is up
 
+        // While an alert is up it owns the bar; the forecast phrase returns once it expires.
         function renderBottomBar() {
             const bar = document.getElementById('bottom-bar');
             const el = document.getElementById('short-forecast');
             bar.className = 'card bottom-bar';
             document.getElementById('alert-info').hidden = !activeAlert;
-            if (activeAlert && !showForecastInstead) {
+            if (activeAlert) {
                 bar.classList.add('has-alert', 'alert-' + activeAlert.cls);
                 el.textContent = activeAlert.text;
             } else {
-                if (activeAlert) bar.classList.add('has-alert', 'alert-' + activeAlert.cls, 'alert-muted');
                 el.textContent = currentShortForecast || 'Forecast unavailable';
             }
         }
 
-        function enableAlertToggle() {
-            document.getElementById('bottom-bar').addEventListener('click', () => {
-                if (!activeAlert) return;
-                showForecastInstead = !showForecastInstead;
-                renderBottomBar();
+        function enableAlertUI() {
+            // no alert: the phrase links to the NWS page. During one: the phrase and the dot
+            // open the advisory, which carries the link itself. The rest of the bar is inert.
+            const link = document.getElementById('short-forecast');
+            link.href = `https://forecast.weather.gov/MapClick.php?lat=${CONFIG.STATION_LAT}&lon=${CONFIG.STATION_LON}`;
+            link.addEventListener('click', (e) => {
+                e.stopPropagation();
+                if (activeAlert) { e.preventDefault(); openAlertSheet(); }
             });
-            document.getElementById('alert-info').addEventListener('click', (e) => {
-                e.stopPropagation();  // don't also toggle the bar
-                openAlertSheet();
-            });
+            document.getElementById('alert-info').addEventListener('click', openAlertSheet);
             const modal = document.getElementById('alert-modal');
             document.getElementById('alert-close').addEventListener('click', () => modal.classList.remove('open'));
             modal.addEventListener('click', (e) => { if (e.target === modal) modal.classList.remove('open'); });
@@ -1163,7 +1158,7 @@
                     const onsetD = new Date(o);
                     return onsetD <= nowD || onsetD.toDateString() === nowD.toDateString();
                 });
-                if (!feats.length) { activeAlert = null; showForecastInstead = false; renderBottomBar(); return; }
+                if (!feats.length) { activeAlert = null; renderBottomBar(); return; }
 
                 // in-effect alerts outrank pending ones, then by severity
                 const now = Date.now();
@@ -1192,9 +1187,7 @@
                 const when = onset && onset.getTime() > now
                     ? `${fmt(onset)} – ${end ? fmt(end) : 'unknown'}`
                     : (end ? `In effect until ${fmt(end)}` : 'In effect now');
-                const isNew = !activeAlert || activeAlert.text !== text;
                 activeAlert = { text, cls, detail: { event: p.event, when, area: p.areaDesc, description: p.description, instruction: p.instruction } };
-                if (isNew) showForecastInstead = false;  // a new alert always announces itself
                 renderBottomBar();
             } catch (e) { console.error('NWS alerts error:', e); }  // keep last known state
         }
@@ -1492,7 +1485,7 @@
             initWeekChart();
             enableFullscreen();
             enableTooltipDismiss();
-            enableAlertToggle();
+            enableAlertUI();
             enableRadar();
             updateSunDisplay();
             updateMoonPhase();
