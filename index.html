@@ -189,7 +189,8 @@
         .alert-info[hidden] { display: none; }
 
         /* Full advisory text sheet */
-        .alert-modal { position: fixed; inset: 0; z-index: 600; background: rgba(4, 8, 18, 0.85); display: none; align-items: center; justify-content: center; padding: 2rem; }
+        .alert-modal { position: fixed; inset: 0; z-index: 600; background: rgba(4, 8, 18, 0.85); display: none; align-items: center; justify-content: center;
+            padding: 2rem; padding-top: max(2rem, calc(env(safe-area-inset-top, 0px) + 1rem)); }
         .alert-modal.open { display: flex; }
         .alert-sheet { background: #111a2e; border: 1px solid rgba(255, 255, 255, 0.18); border-radius: 0.875rem;
             width: min(46rem, 100%); max-height: 80vh; display: flex; flex-direction: column; }
@@ -205,7 +206,9 @@
         .radar-btn { position: absolute; left: 0.9rem; background: rgba(116, 235, 213, 0.12); color: #74ebd5; border: 1px solid rgba(116, 235, 213, 0.45);
             border-radius: 0.5rem; padding: 0.25rem 0.7rem; font-size: 0.85rem; font-weight: 600; letter-spacing: 1px; font-family: inherit; cursor: pointer; }
         .radar-btn:active { background: rgba(116, 235, 213, 0.28); }
-        .radar-modal { position: fixed; inset: 0; z-index: 500; background: #0b1020; display: none; flex-direction: column; }
+        /* fixed overlays sit above the body's safe-area padding, so they clear the status bar themselves */
+        .radar-modal { position: fixed; inset: 0; z-index: 500; background: #0b1020; display: none; flex-direction: column;
+            padding-top: env(safe-area-inset-top, 0px); }
         .radar-modal.open { display: flex; }
         .radar-head { display: flex; align-items: center; gap: 0.8rem; padding: 0.5rem 0.9rem; background: rgba(255, 255, 255, 0.06); position: relative; }
         .radar-title { font-size: 1.1rem; color: #fff; letter-spacing: 1px; text-transform: uppercase; }
