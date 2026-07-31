@@ -1132,7 +1132,9 @@
                 body.append(h, p);
             };
             add('When', d.when);
-            add('Affected Area', d.area);
+            // longer products spell out "* WHERE..." themselves; short-fuse warnings don't,
+            // so only add the area when the text doesn't already say it
+            if (!/\*\s*WHERE\.\.\./i.test(d.description || '')) add('Affected Area', d.area);
             add('Details', d.description);
             add('Precautionary/Preparedness Actions', d.instruction);  // the NWS's own heading
             const a = document.createElement('a');
