@@ -1021,15 +1021,13 @@
         }
 
         function updateForecastDisplay(periods) {
-            let high = null, low = null, forecast = '';
+            // the phrase describes the CURRENT period (periods[0] is always now);
+            // high/low still come from the first day/night periods
+            const forecast = periods.length ? periods[0].shortForecast : '';
+            let high = null, low = null;
             for (const p of periods) {
-                if (p.isDaytime && high === null) {
-                    high = p.temperature;
-                    forecast = p.shortForecast;
-                }
-                if (!p.isDaytime && low === null) {
-                    low = p.temperature;
-                }
+                if (p.isDaytime && high === null) high = p.temperature;
+                if (!p.isDaytime && low === null) low = p.temperature;
                 if (high !== null && low !== null) break;
             }
             if (high !== null) document.getElementById('forecast-high').textContent = high;
@@ -1049,8 +1047,9 @@
                 if (p.isDaytime) entry.high = p.temperature;
                 else entry.low = p.temperature;
             }
-            // a day whose daylight hours have already passed has no high left to plot
-            const dailyData = [...byDay.values()].filter(d => d.high !== null).slice(0, 7);
+            // only plot complete days - a partial first day (high already past) or last
+            // day (night beyond the forecast window) would leave a dangling point
+            const dailyData = [...byDay.values()].filter(d => d.high !== null && d.low !== null).slice(0, 7);
             
             if (dailyData.length > 0 && weekChart) {
                 weekChart.data.labels = dailyData.map(d => d.name);
