@@ -221,6 +221,10 @@
         /* tile attributions sit in Leaflet's own corner control, not the header */
         .leaflet-control-attribution { background: rgba(11, 16, 32, 0.7) !important; color: rgba(255, 255, 255, 0.4) !important; font-size: 0.62rem !important; }
         .leaflet-control-attribution a { color: rgba(255, 255, 255, 0.5) !important; }
+        /* overlap the opaque basemap tiles by ~1px so retina sub-pixel gaps don't show as seams.
+           Scoped to the default tile pane (base only) - radar and the transparent label tiles
+           live in their own panes and must keep their native size. */
+        .leaflet-map-pane > .leaflet-tile-pane img { width: 257px !important; height: 257px !important; }
 
         /* dBZ legend for the NEXRAD colour ramp */
         .radar-legend { position: absolute; left: 0.9rem; bottom: 0.9rem; z-index: 1000; background: rgba(11, 16, 32, 0.85);
