@@ -1329,11 +1329,17 @@
 
         // Radar overlay: last hour of NEXRAD (IEM, weather.gov colours) or RainViewer (dark look),
         // looped over a CARTO basemap centred on the station. Leaflet loads lazily on first open.
+        // Esri gray canvas (keyless) - CARTO began watermarking keyless tiles Aug 2026.
+        // Esri splits base and place labels into separate layers, so each style carries both.
         const RADAR_STYLES = [
-            { name: 'Classic', source: 'iem', base: 'https://basemaps.cartocdn.com/light_all/{z}/{x}/{y}{r}.png', opacity: 0.8, marker: '#c0392b' },
-            { name: 'Dark', source: 'rainviewer', scheme: 6, base: 'https://basemaps.cartocdn.com/dark_all/{z}/{x}/{y}{r}.png', opacity: 0.85, marker: '#74ebd5' }
+            { name: 'Classic', source: 'iem', opacity: 0.8, marker: '#c0392b',
+              base: 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Base/MapServer/tile/{z}/{y}/{x}',
+              labels: 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Light_Gray_Reference/MapServer/tile/{z}/{y}/{x}' },
+            { name: 'Dark', source: 'rainviewer', scheme: 6, opacity: 0.85, marker: '#74ebd5',
+              base: 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Base/MapServer/tile/{z}/{y}/{x}',
+              labels: 'https://server.arcgisonline.com/ArcGIS/rest/services/Canvas/World_Dark_Gray_Reference/MapServer/tile/{z}/{y}/{x}' }
         ];
-        let radarMap = null, radarBase = null, radarMarker = null, radarLayers = [], radarTimes = [],
+        let radarMap = null, radarBase = null, radarLabels = null, radarMarker = null, radarLayers = [], radarTimes = [],
             radarTimer = null, radarIdx = 0, radarStyle = 0, radarPlaying = true;
 
         function loadAsset(tag, attrs) {
@@ -1360,6 +1366,9 @@
                     // draws hairline seams on retina screens. 350 keeps it under the marker pane.
                     radarMap.createPane('radarPane');
                     radarMap.getPane('radarPane').style.zIndex = 350;
+                    // place labels above the base but under the echoes, like CARTO's baked-in ones
+                    radarMap.createPane('labelPane');
+                    radarMap.getPane('labelPane').style.zIndex = 300;
                 } else {
                     radarMap.invalidateSize();
                 }
@@ -1377,8 +1386,10 @@
             document.getElementById('radar-legend').style.display = s.source === 'iem' ? '' : 'none';
 
             if (radarBase) radarMap.removeLayer(radarBase);
-            radarBase = L.tileLayer(s.base, { maxZoom: 12, attribution: '&copy; OpenStreetMap, &copy; CARTO' }).addTo(radarMap);
+            radarBase = L.tileLayer(s.base, { maxZoom: 12, attribution: 'Esri, HERE, Garmin &middot; &copy; OpenStreetMap contributors' }).addTo(radarMap);
             radarBase.bringToBack();
+            if (radarLabels) radarMap.removeLayer(radarLabels);
+            radarLabels = L.tileLayer(s.labels, { pane: 'labelPane', maxZoom: 12 }).addTo(radarMap);
 
             radarLayers.forEach(l => radarMap.removeLayer(l));
             radarLayers = [];
